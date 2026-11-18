@@ -2,7 +2,14 @@ import { defineConfig } from "oxfmt";
 
 export default defineConfig({
   printWidth: 100,
-  ignorePatterns: [".output/**", "dist/**"],
+  ignorePatterns: [
+    ".output/**",
+    "dist/**",
+    ".wrangler/**",
+    ".agents/**",
+    "worker-configuration.d.ts",
+    "**/snapshot.json",
+  ],
 
   overrides: [
     {
