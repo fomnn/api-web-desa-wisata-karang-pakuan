@@ -10,17 +10,20 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: 1.0.0-rc.5
-        version: 1.0.0-rc.5
+        version: 1.0.0-rc.5(valibot@1.5.0(typescript@7.0.2))
       nitro:
         specifier: ^3.0.261103-rc
         version: 3.0.261103-rc
+      valibot:
+        specifier: ^1.5.0
+        version: 1.5.0(typescript@7.0.2)
     devDependencies:
       '@types/node':
         specifier: latest
         version: 26.6.6
       drizzle-kit:
         specifier: 1.0.0-rc.5
-        version: 1.0.0-rc.5(drizzle-orm@1.0.0-rc.5)
+        version: 1.0.0-rc.5(drizzle-orm@1.0.0-rc.5(valibot@1.5.0(typescript@7.0.2)))
       miniflare:
         specifier: ^4.20260730.0
         version: 4.20260730.0
@@ -1513,6 +1516,14 @@ packages:
   unenv@2.0.0-rc.24:
     resolution: {integrity: sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw==}
 
+  valibot@1.5.0:
+    resolution: {integrity: sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   workerd@1.20260730.1:
     resolution: {integrity: sha512-zmfNIjwYSWFY5chGBOjWtH3xAE7p97FTC6vR4Ep98290ho6AeAR/NVcBD274YCLEUYzqm8yxdtZlxMybU8a3jA==}
     engines: {node: '>=16'}
@@ -2209,11 +2220,13 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
-  drizzle-kit@1.0.0-rc.5(drizzle-orm@1.0.0-rc.5):
+  drizzle-kit@1.0.0-rc.5(drizzle-orm@1.0.0-rc.5(valibot@1.5.0(typescript@7.0.2))):
     optionalDependencies:
-      drizzle-orm: 1.0.0-rc.5
+      drizzle-orm: 1.0.0-rc.5(valibot@1.5.0(typescript@7.0.2))
 
-  drizzle-orm@1.0.0-rc.5: {}
+  drizzle-orm@1.0.0-rc.5(valibot@1.5.0(typescript@7.0.2)):
+    optionalDependencies:
+      valibot: 1.5.0(typescript@7.0.2)
 
   env-runner@0.3.11:
     dependencies:
@@ -2493,6 +2506,10 @@ snapshots:
   unenv@2.0.0-rc.24:
     dependencies:
       pathe: 2.0.3
+
+  valibot@1.5.0(typescript@7.0.2):
+    optionalDependencies:
+      typescript: 7.0.2
 
   workerd@1.20260730.1:
     optionalDependencies:
