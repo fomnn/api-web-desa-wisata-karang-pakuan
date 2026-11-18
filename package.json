@@ -16,8 +16,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "env:local-d1": "node .dev-scripts/sync-local-d1-env.mjs",
-    "db:migrate:local": "node .dev-scripts/sync-local-d1-env.mjs && drizzle-kit migrate --config drizzle.local.config.ts",
-    "db:push:local": "node .dev-scripts/sync-local-d1-env.mjs && drizzle-kit push --config drizzle.local.config.ts"
+    "db:migrate:local": "pnpm run env:local-d1 && drizzle-kit migrate --config drizzle.local.config.ts",
+    "db:push:local": "pnpm run env:local-d1 && drizzle-kit push --config drizzle.local.config.ts"
   },
   "dependencies": {
     "drizzle-orm": "1.0.0-rc.5",
