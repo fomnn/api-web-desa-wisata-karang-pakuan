@@ -1,0 +1,21 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "api-web-desa-wisata-karang-pakuan",
+	"compatibility_date": "2026-11-18",
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "dev-web-desa-wisata-karang-pakuan",
+			"database_id": "d3f9888a-bcda-4d05-86e1-b465149fdcfd"
+		}
+	],
+	"r2_buckets": [
+		{
+			"bucket_name": "dev-web-desa-wisata-karang-pakuan-storage",
+			"binding": "STORAGE"
+		}
+	]
+}
