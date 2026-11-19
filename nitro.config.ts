@@ -6,9 +6,6 @@ export default defineConfig({
   preset: "cloudflare-module",
   errorHandler: "./src/error.ts",
   devErrorHandler: errorHandler,
-  renderer: {
-    template: "./index.html",
-  },
   experimental: {
     openAPI: true,
   },
