@@ -11,6 +11,16 @@ export function getIdParam(event: H3Event): number {
   return id;
 }
 
+export function getSlugParam(event: H3Event): string {
+  const slug = getRouterParam(event, "slug");
+
+  if (!slug) {
+    throw new HTTPError({ status: 400, statusText: "Bad Request", message: "Invalid slug" });
+  }
+
+  return slug;
+}
+
 export function badRequest(message: string): HTTPError {
   return new HTTPError({ status: 400, statusText: "Bad Request", message });
 }
@@ -20,6 +30,25 @@ export function notFound(resource: string): HTTPError {
     status: 404,
     statusText: "Not Found",
     message: `${resource} not found`,
+  });
+}
+
+export function tooManyRequests(result: {
+  limit: number;
+  resetAt: Date;
+  retryAfter: number;
+}): HTTPError {
+  return new HTTPError({
+    status: 429,
+    statusText: "Too Many Requests",
+    message: "Too many requests. Try again later.",
+    headers: {
+      "retry-after": String(result.retryAfter),
+      "x-ratelimit-limit": String(result.limit),
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": String(Math.floor(result.resetAt.getTime() / 1000)),
+    },
+    data: { retryAfter: result.retryAfter },
   });
 }
 

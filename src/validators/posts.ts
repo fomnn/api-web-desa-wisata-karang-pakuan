@@ -44,3 +44,10 @@ export const listPostsQuerySchema = v.object({
   tagId: queryIdSchema,
   q: searchEntry,
 });
+
+export const listPublicPostsQuerySchema = v.object({
+  ...paginationEntries,
+  categoryId: queryIdSchema,
+  tagId: queryIdSchema,
+  q: searchEntry,
+});

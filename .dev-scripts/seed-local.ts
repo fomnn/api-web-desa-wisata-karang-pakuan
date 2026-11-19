@@ -19,6 +19,7 @@ import {
   postTags,
   posts,
   products,
+  rateLimits,
   settings,
   tags,
   users,
@@ -61,6 +62,7 @@ try {
   await db.delete(users);
   await db.delete(settings);
   await db.delete(contactMessages);
+  await db.delete(rateLimits);
 
   // Keeps seeded ids predictable across runs (1, 2, 3, ...).
   await db.run(sql`DELETE FROM sqlite_sequence`);

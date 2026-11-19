@@ -2,6 +2,9 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "api-web-desa-wisata-karang-pakuan",
   "compatibility_date": "2026-11-18",
+  "vars": {
+    "CORS_ORIGINS": ""
+  },
   "observability": {
     "enabled": true
   },

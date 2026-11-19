@@ -1,9 +1,10 @@
-import { and, count, desc, eq, like, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, type SQL } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
 import { getDb } from "../../../db/client";
 import { products } from "../../../db/schema";
 import { pagination } from "../../../utils/http";
+import { likeContains } from "../../../utils/sql";
 import { listProductsQuerySchema } from "../../../validators/products";
 
 defineRouteMeta({
@@ -173,7 +174,7 @@ export default defineHandler(async (event) => {
   const filters: SQL[] = [];
 
   if (query.status) filters.push(eq(products.status, query.status));
-  if (query.q) filters.push(like(products.name, `%${query.q}%`));
+  if (query.q) filters.push(likeContains(products.name, query.q));
 
   const where = filters.length > 0 ? and(...filters) : undefined;
 

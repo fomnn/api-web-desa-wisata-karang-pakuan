@@ -68,6 +68,14 @@ defineRouteMeta({
           },
         },
       },
+      429: {
+        description: "Too many write requests",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/Error" },
+          },
+        },
+      },
     },
   },
 });
@@ -82,20 +90,49 @@ export default defineHandler(async (event) => {
     throw badRequest("No fields to update");
   }
 
-  const current =
-    Object.keys(values).length > 0
-      ? (
-          await writeOrThrow(() => db.update(posts).set(values).where(eq(posts.id, id)).returning())
-        )[0]
-      : await db.select().from(posts).where(eq(posts.id, id)).get();
+  const current = await db.select().from(posts).where(eq(posts.id, id)).get();
 
   if (!current) throw notFound("Post");
 
-  if (tagIds !== undefined) {
-    await db.delete(postTags).where(eq(postTags.postId, id));
+  if (values.status === "published") {
+    values.publishedAt ??= current.publishedAt ?? new Date();
+  } else if (values.status === "draft") {
+    values.publishedAt = null;
+  }
 
-    if (tagIds.length > 0) {
-      await db.insert(postTags).values(tagIds.map((tagId) => ({ postId: id, tagId })));
+  const updatePost =
+    Object.keys(values).length > 0
+      ? db.update(posts).set(values).where(eq(posts.id, id)).returning()
+      : null;
+
+  const deleteTags =
+    tagIds !== undefined ? db.delete(postTags).where(eq(postTags.postId, id)) : null;
+
+  const insertTags =
+    tagIds && tagIds.length > 0
+      ? db.insert(postTags).values(tagIds.map((tagId) => ({ postId: id, tagId })))
+      : null;
+
+  if (updatePost) {
+    if (deleteTags && insertTags) {
+      const [updated] = await writeOrThrow(() => db.batch([updatePost, deleteTags, insertTags]));
+      return updated[0];
+    }
+
+    if (deleteTags) {
+      const [updated] = await writeOrThrow(() => db.batch([updatePost, deleteTags]));
+      return updated[0];
+    }
+
+    const [updated] = await writeOrThrow(() => db.batch([updatePost]));
+    return updated[0];
+  }
+
+  if (deleteTags) {
+    if (insertTags) {
+      await writeOrThrow(() => db.batch([deleteTags, insertTags]));
+    } else {
+      await writeOrThrow(() => db.batch([deleteTags]));
     }
   }
 

@@ -51,6 +51,14 @@ defineRouteMeta({
           },
         },
       },
+      429: {
+        description: "Too many write requests",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/Error" },
+          },
+        },
+      },
     },
   },
 });

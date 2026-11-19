@@ -1,8 +1,14 @@
 import { defineConfig } from "nitro";
+import errorHandler from "./src/error";
 
 export default defineConfig({
   serverDir: "./src",
   preset: "cloudflare-module",
+  errorHandler: "./src/error.ts",
+  devErrorHandler: errorHandler,
+  renderer: {
+    template: "./index.html",
+  },
   experimental: {
     openAPI: true,
   },

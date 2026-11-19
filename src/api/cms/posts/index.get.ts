@@ -1,9 +1,10 @@
-import { and, count, desc, eq, inArray, like, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, inArray, type SQL } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
 import { getDb } from "../../../db/client";
 import { postTags, posts } from "../../../db/schema";
 import { pagination } from "../../../utils/http";
+import { likeContains } from "../../../utils/sql";
 import { listPostsQuerySchema } from "../../../validators/posts";
 
 defineRouteMeta({
@@ -57,7 +58,7 @@ defineRouteMeta({
               properties: {
                 data: {
                   type: "array",
-                  items: { $ref: "#/components/schemas/Post" },
+                  items: { $ref: "#/components/schemas/PostListItem" },
                 },
                 pagination: { $ref: "#/components/schemas/Pagination" },
               },
@@ -127,6 +128,38 @@ defineRouteMeta({
               title: { type: "string" },
               excerpt: { type: ["string", "null"] },
               content: { type: "string" },
+              coverMediaId: { type: ["integer", "null"] },
+              categoryId: { type: ["integer", "null"] },
+              authorId: { type: "integer" },
+              status: {
+                type: "string",
+                enum: ["draft", "review", "published", "archived"],
+              },
+              publishedAt: { type: ["string", "null"], format: "date-time" },
+              isFeatured: { type: "boolean" },
+              metaTitle: { type: ["string", "null"] },
+              metaDescription: { type: ["string", "null"] },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" },
+            },
+          },
+          PostListItem: {
+            type: "object",
+            required: [
+              "id",
+              "slug",
+              "title",
+              "authorId",
+              "status",
+              "isFeatured",
+              "createdAt",
+              "updatedAt",
+            ],
+            properties: {
+              id: { type: "integer" },
+              slug: { type: "string" },
+              title: { type: "string" },
+              excerpt: { type: ["string", "null"] },
               coverMediaId: { type: ["integer", "null"] },
               categoryId: { type: ["integer", "null"] },
               authorId: { type: "integer" },
@@ -238,7 +271,7 @@ export default defineHandler(async (event) => {
 
   if (query.status) filters.push(eq(posts.status, query.status));
   if (query.categoryId) filters.push(eq(posts.categoryId, query.categoryId));
-  if (query.q) filters.push(like(posts.title, `%${query.q}%`));
+  if (query.q) filters.push(likeContains(posts.title, query.q));
   if (query.tagId) {
     filters.push(
       inArray(
@@ -252,7 +285,22 @@ export default defineHandler(async (event) => {
 
   const [data, totalRows] = await Promise.all([
     db
-      .select()
+      .select({
+        id: posts.id,
+        slug: posts.slug,
+        title: posts.title,
+        excerpt: posts.excerpt,
+        coverMediaId: posts.coverMediaId,
+        categoryId: posts.categoryId,
+        authorId: posts.authorId,
+        status: posts.status,
+        publishedAt: posts.publishedAt,
+        isFeatured: posts.isFeatured,
+        metaTitle: posts.metaTitle,
+        metaDescription: posts.metaDescription,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+      })
       .from(posts)
       .where(where)
       .orderBy(desc(posts.createdAt))

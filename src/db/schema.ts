@@ -218,6 +218,16 @@ export const contactMessages = sqliteTable(
   (t) => [index("contact_messages_status_created_at_idx").on(t.status, t.createdAt)],
 );
 
+export const rateLimits = sqliteTable(
+  "rate_limits",
+  {
+    key: text("key").primaryKey(),
+    count: integer("count").notNull().default(0),
+    resetAt: integer("reset_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("rate_limits_reset_at_idx").on(t.resetAt)],
+);
+
 export const schema = {
   users,
   sessions,
@@ -232,6 +242,7 @@ export const schema = {
   albumMedia,
   settings,
   contactMessages,
+  rateLimits,
 };
 
 export const relations = defineRelations(schema, (r) => ({

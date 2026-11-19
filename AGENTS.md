@@ -1,16 +1,16 @@
 # AGENTS.md
 
-Cloudflare Workers REST API for the Karang Pakuan village tourism site and CMS: Nitro v3 (H3 v2), Drizzle ORM 1.0 RC on D1, Valibot validation, OpenAPI generated at runtime.
+Cloudflare Workers full-stack app for the Karang Pakuan village tourism site and CMS: React SPA (`web-client/`) served by Nitro v3 (H3 v2) through the `nitro/vite` plugin, Drizzle ORM 1.0 RC on D1, Valibot validation, OpenAPI generated at runtime.
 
 Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https://nitro.build/llms.txt, especially `docs/utils.md` (imports) and `docs/migration.md`.
 
 ## Commands
 
-- `pnpm dev` — dev server on `:3000` in `cloudflare-dev` (workerd) emulation. This is the only working way to exercise DB routes, because code imports `cloudflare:workers`.
+- `pnpm dev` — `vite dev` on `:3000`; Vite serves the client and Nitro runs the server in `cloudflare-dev` (workerd) emulation. This is the only working way to exercise DB routes, because code imports `cloudflare:workers`.
 - `pnpm lint` / `pnpm lint:fix` — oxlint (correctness = error, suspicious = warn, type-aware).
 - `pnpm format` / `pnpm format:check` — oxfmt, printWidth 100. Ignores `.agents/**`, `worker-configuration.d.ts`, `**/snapshot.json`.
 - `npx tsc --noEmit` — typecheck (no package script exists).
-- `pnpm build` — bundles to `.output/` for the `cloudflare-module` preset; `pnpm preview` serves that build via `wrangler dev`. There is no `node .output/...` entrypoint and no test suite, so verify with `pnpm dev` + curl.
+- `pnpm build` — `vite build`, bundling client assets and the server to `.output/` for the `cloudflare-module` preset; `pnpm preview` serves that build through Nitro. There is no `node .output/...` entrypoint and no test suite, so verify with `pnpm dev` + curl. `nitro build` still works, but `nitro dev` does not drive the Vite builder.
 - Deploy after build with `npx nitro deploy --prebuilt` or `npx wrangler --cwd .output deploy` (no deploy script).
 - `pnpm cf-typegen` — regenerate `worker-configuration.d.ts` after changing bindings in `wrangler.jsonc`; never hand-edit that file.
 
@@ -25,6 +25,7 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 ## Layout and conventions
 
 - `src/` is `serverDir`; paths map to URLs (`src/api/cms/posts/[id].get.ts` → `GET /api/cms/posts/:id`). Static files stay in `public/`.
+- `web-client/src/` is the React SPA: TanStack Router (code-based routes in `web-client/src/router.tsx`), TanStack Query (`lib/query.ts` holds the `QueryClient`; route loaders call `ensureQueryData`), and Tailwind CSS v4 via `@tailwindcss/vite` (`styles.css`). Root `index.html` is both the Vite entry and Nitro's renderer template, so unmatched URLs return the SPA shell. Vite's root must stay the repo root: `nitro/vite` takes Nitro's `rootDir` from it.
 - Only posts, events, products, categories and tags have routes, all under `/api/cms`. `users`, `sessions`, `media`, `albums`, `albumMedia`, `settings` and `contact_messages` exist in the schema but have no endpoints.
 - No auth exists: every CMS route is public and there is no current-user context, even though `posts.authorId` is required.
 - Validators live in `src/validators/*.ts` with shared rules in `common.ts`. Use `readValidatedBody` / `getValidatedQuery` from `nitro/h3`; query values arrive as strings, so numerics use `v.pipe(v.string(), v.toNumber(), ...)` (see `paginationEntries`).

@@ -51,6 +51,11 @@ defineRouteMeta({
               status: { type: "integer" },
               statusText: { type: "string" },
               message: { type: "string" },
+              data: {
+                type: "object",
+                additionalProperties: true,
+                description: "Extra details, such as validation issues or retry information",
+              },
             },
           },
           Category: {

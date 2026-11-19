@@ -37,6 +37,8 @@ export const paginationEntries = {
   pageSize: v.optional(pageSizeSchema, "50"),
 };
 
+export const paginationQuerySchema = v.object(paginationEntries);
+
 export const queryIdSchema = v.optional(
   v.pipe(v.string(), v.toNumber(), v.integer(), v.minValue(1)),
 );

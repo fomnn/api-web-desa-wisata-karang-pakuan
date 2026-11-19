@@ -1,3 +1,5 @@
+import { sql } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { readValidatedBody } from "nitro/h3";
 import { getDb } from "../../../db/client";
@@ -51,6 +53,14 @@ defineRouteMeta({
           },
         },
       },
+      429: {
+        description: "Too many write requests",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/Error" },
+          },
+        },
+      },
     },
   },
 });
@@ -60,15 +70,31 @@ export default defineHandler(async (event) => {
   const db = getDb();
   const { tagIds, ...values } = body;
 
-  const rows = await writeOrThrow(() => db.insert(posts).values(values).returning());
-  const post = rows[0];
+  if (values.status === "published") {
+    values.publishedAt ??= new Date();
+  } else if (values.status === "draft") {
+    values.publishedAt = null;
+  }
+
+  const insertPost = db.insert(posts).values(values).returning();
+  const insertTags =
+    tagIds && tagIds.length > 0
+      ? db.insert(postTags).values(
+          tagIds.map((tagId) => ({
+            postId: sql`(select ${posts.id} from ${posts} where ${posts.slug} = ${values.slug})`,
+            tagId,
+          })),
+        )
+      : null;
+
+  const statements: [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]] = [insertPost];
+  if (insertTags) statements.push(insertTags);
+
+  const [rows] = await writeOrThrow(() => db.batch(statements));
+  const post: typeof posts.$inferSelect | undefined = rows[0];
 
   if (!post) {
     throw new Error("Failed to create post");
-  }
-
-  if (tagIds && tagIds.length > 0) {
-    await db.insert(postTags).values(tagIds.map((tagId) => ({ postId: post.id, tagId })));
   }
 
   event.res.status = 201;

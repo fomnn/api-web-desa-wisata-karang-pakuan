@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nitro dev",
-    "build": "nitro build",
-    "preview": "nitro preview",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
     "postinstall": "pnpm run env:local-d1",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
@@ -21,19 +21,29 @@
     "db:seed:local": "node .dev-scripts/seed-local.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.108.0",
+    "@tanstack/react-router": "^1.170.46",
     "drizzle-orm": "1.0.0-rc.5",
     "nitro": "^3.0.261103-rc",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "valibot": "^1.5.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
     "@types/node": "latest",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
     "drizzle-kit": "1.0.0-rc.5",
     "miniflare": "^4.20260730.0",
     "oxfmt": "^0.79.0",
     "oxlint": "^1.94.0",
     "rolldown": "^1",
+    "tailwindcss": "^4.3.5",
     "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "latest",
+    "vite": "^8.3.8",
     "wrangler": "^4.163.0"
   }
 }
