@@ -1,5 +1,6 @@
 import { defineConfig } from "nitro";
 import errorHandler from "./src/error";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   serverDir: "./src",
@@ -17,4 +18,5 @@ export default defineConfig({
     },
     production: "runtime",
   },
+  alias: { "@src": fileURLToPath(new URL("./src", import.meta.url)) },
 });

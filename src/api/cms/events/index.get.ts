@@ -1,11 +1,11 @@
 import { and, count, desc, eq, type SQL } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
-import { getDb } from "../../../db/client";
-import { events } from "../../../db/schema";
-import { pagination } from "../../../utils/http";
-import { likeContains } from "../../../utils/sql";
-import { listEventsQuerySchema } from "../../../validators/events";
+import { getDb } from "@src/db/client";
+import { events } from "@src/db/schema";
+import { pagination } from "@src/utils/http";
+import { likeContains } from "@src/utils/sql";
+import { listEventsQuerySchema } from "@src/validators/events";
 
 defineRouteMeta({
   openAPI: {

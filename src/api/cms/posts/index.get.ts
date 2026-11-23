@@ -1,11 +1,11 @@
 import { and, count, desc, eq, inArray, type SQL } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
-import { getDb } from "../../../db/client";
-import { postTags, posts } from "../../../db/schema";
-import { pagination } from "../../../utils/http";
-import { likeContains } from "../../../utils/sql";
-import { listPostsQuerySchema } from "../../../validators/posts";
+import { getDb } from "@src/db/client";
+import { postTags, posts } from "@src/db/schema";
+import { pagination } from "@src/utils/http";
+import { likeContains } from "@src/utils/sql";
+import { listPostsQuerySchema } from "@src/validators/posts";
 
 defineRouteMeta({
   openAPI: {

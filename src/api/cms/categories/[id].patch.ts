@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { readValidatedBody } from "nitro/h3";
-import { getDb } from "../../../db/client";
-import { categories } from "../../../db/schema";
-import { badRequest, getIdParam, notFound, writeOrThrow } from "../../../utils/http";
-import { updateCategorySchema } from "../../../validators/categories";
+import { getDb } from "@src/db/client";
+import { categories } from "@src/db/schema";
+import { badRequest, getIdParam, notFound, writeOrThrow } from "@src/utils/http";
+import { updateCategorySchema } from "@src/validators/categories";
 
 defineRouteMeta({
   openAPI: {

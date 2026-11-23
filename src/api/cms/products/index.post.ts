@@ -1,9 +1,9 @@
 import { defineHandler, defineRouteMeta } from "nitro";
 import { readValidatedBody } from "nitro/h3";
-import { getDb } from "../../../db/client";
-import { products } from "../../../db/schema";
-import { writeOrThrow } from "../../../utils/http";
-import { createProductSchema } from "../../../validators/products";
+import { getDb } from "@src/db/client";
+import { products } from "@src/db/schema";
+import { writeOrThrow } from "@src/utils/http";
+import { createProductSchema } from "@src/validators/products";
 
 defineRouteMeta({
   openAPI: {

@@ -1,5 +1,5 @@
 import { defineHandler } from "nitro";
-import { resolveCors } from "../utils/cors";
+import { resolveCors } from "@src/utils/cors";
 
 export default defineHandler((event) => {
   const headers = resolveCors(event);

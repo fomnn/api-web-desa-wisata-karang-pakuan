@@ -1,11 +1,11 @@
 import { and, count, eq, gte, isNotNull, or } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
-import { getDb } from "../../db/client";
-import { events } from "../../db/schema";
-import { cachedJson } from "../../utils/cache";
-import { pagination } from "../../utils/http";
-import { paginationQuerySchema } from "../../validators/common";
+import { getDb } from "@src/db/client";
+import { events } from "@src/db/schema";
+import { cachedJson } from "@src/utils/cache";
+import { pagination } from "@src/utils/http";
+import { paginationQuerySchema } from "@src/validators/common";
 
 defineRouteMeta({
   openAPI: {
@@ -113,10 +113,7 @@ export default defineHandler(async (event) => {
     db.query.events.findMany({
       where: {
         status: "published",
-        OR: [
-          { startAt: { gte: now } },
-          { endAt: { isNotNull: true, gte: now } },
-        ],
+        OR: [{ startAt: { gte: now } }, { endAt: { isNotNull: true, gte: now } }],
       },
       columns: { status: false },
       with: { cover: { columns: { uploadedBy: false } } },

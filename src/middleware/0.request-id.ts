@@ -1,6 +1,6 @@
 import { defineHandler } from "nitro";
 import { getRequestHeader } from "nitro/h3";
-import { setRequestId, setRequestStartedAt } from "../utils/request-context";
+import { setRequestId, setRequestStartedAt } from "@src/utils/request-context";
 
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/;
 

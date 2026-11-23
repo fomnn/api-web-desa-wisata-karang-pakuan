@@ -1,8 +1,8 @@
 import { asc } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
-import { getDb } from "../../db/client";
-import { categories } from "../../db/schema";
-import { cachedJson } from "../../utils/cache";
+import { getDb } from "@src/db/client";
+import { categories } from "@src/db/schema";
+import { cachedJson } from "@src/utils/cache";
 
 defineRouteMeta({
   openAPI: {

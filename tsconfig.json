@@ -1,6 +1,9 @@
 {
   "extends": "nitro/tsconfig",
   "compilerOptions": {
-    "types": ["./worker-configuration.d.ts", "node"]
+    "types": ["./worker-configuration.d.ts", "node"],
+    "paths": {
+      "@src/*": ["./src/*"]
+    }
   }
 }

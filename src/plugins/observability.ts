@@ -1,8 +1,8 @@
 import { definePlugin } from "nitro";
-import { resolveCors } from "../utils/cors";
-import { log } from "../utils/logger";
-import { getRequestId, getRequestPath, getRequestStartedAt } from "../utils/request-context";
-import { applySecurityHeaders } from "../utils/security-headers";
+import { resolveCors } from "@src/utils/cors";
+import { log } from "@src/utils/logger";
+import { getRequestId, getRequestPath, getRequestStartedAt } from "@src/utils/request-context";
+import { applySecurityHeaders } from "@src/utils/security-headers";
 
 function errorStatus(error: unknown): number {
   if (typeof error !== "object" || error === null || !("status" in error)) return 500;

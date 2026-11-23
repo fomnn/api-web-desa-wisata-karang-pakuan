@@ -1,11 +1,11 @@
 import { asc, count, eq, inArray } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
-import { getDb } from "../../db/client";
-import { albumMedia, albums, media } from "../../db/schema";
-import { cachedJson } from "../../utils/cache";
-import { pagination } from "../../utils/http";
-import { paginationQuerySchema } from "../../validators/common";
+import { getDb } from "@src/db/client";
+import { albumMedia, albums, media } from "@src/db/schema";
+import { cachedJson } from "@src/utils/cache";
+import { pagination } from "@src/utils/http";
+import { paginationQuerySchema } from "@src/validators/common";
 
 defineRouteMeta({
   openAPI: {

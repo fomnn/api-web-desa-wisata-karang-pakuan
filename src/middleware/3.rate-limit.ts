@@ -1,8 +1,8 @@
 import { defineHandler } from "nitro";
-import { tooManyRequests } from "../utils/http";
-import { log } from "../utils/logger";
-import { getRequestId } from "../utils/request-context";
-import { consumeWriteLimit, getClientIp, sweepExpiredRateLimits } from "../utils/rate-limit";
+import { tooManyRequests } from "@src/utils/http";
+import { log } from "@src/utils/logger";
+import { getRequestId } from "@src/utils/request-context";
+import { consumeWriteLimit, getClientIp, sweepExpiredRateLimits } from "@src/utils/rate-limit";
 
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 

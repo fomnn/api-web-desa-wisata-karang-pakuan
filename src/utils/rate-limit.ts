@@ -1,7 +1,7 @@
 import { lt, sql } from "drizzle-orm";
 import type { HTTPEvent } from "nitro/h3";
-import { getDb } from "../db/client";
-import { rateLimits } from "../db/schema";
+import { getDb } from "@src/db/client";
+import { rateLimits } from "@src/db/schema";
 
 export const WRITE_LIMIT = 60;
 export const WRITE_WINDOW_SECONDS = 60;

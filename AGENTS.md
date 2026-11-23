@@ -32,7 +32,7 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 - List endpoints return `{ data, pagination }` via `pagination()`, newest first, default pageSize 50 (max 100). Create sets `event.res.status = 201`; delete returns `noContent()`; document the expected 400/404/409/422 responses.
 - Every route exports a default `defineHandler` and calls `defineRouteMeta` with complete inline OpenAPI. Per-resource `$global.components.schemas` are declared in that resource's `index.get.ts`; add new component schemas there rather than in a central file.
 - Spec is served at `/_openapi.json`, Scalar UI at `/_scalar` (`openAPI.production: "runtime"`).
-- No auto-imports: import from `"nitro"`, `"nitro/h3"` and relative paths only.
+- No auto-imports: import from `"nitro"`, `"nitro/h3"`, and otherwise use `@src/<path>` for anything crossing directories (maps to `src/`, defined in `nitro.config.ts` + `tsconfig.json`) or `./` for siblings in the same folder. Only the Nitro bundle resolves `@src`, so `.dev-scripts/` and `nitro.config.ts` keep relative paths.
 
 ## Gotchas
 

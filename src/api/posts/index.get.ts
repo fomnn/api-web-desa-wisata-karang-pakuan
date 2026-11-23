@@ -1,11 +1,11 @@
 import { and, count, eq, inArray, like, type SQL } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getValidatedQuery } from "nitro/h3";
-import { getDb } from "../../db/client";
-import { postTags, posts } from "../../db/schema";
-import { cachedJson } from "../../utils/cache";
-import { pagination } from "../../utils/http";
-import { listPublicPostsQuerySchema } from "../../validators/posts";
+import { getDb } from "@src/db/client";
+import { postTags, posts } from "@src/db/schema";
+import { cachedJson } from "@src/utils/cache";
+import { pagination } from "@src/utils/http";
+import { listPublicPostsQuerySchema } from "@src/validators/posts";
 
 defineRouteMeta({
   openAPI: {
@@ -182,10 +182,7 @@ export default defineHandler(async (event) => {
 
   if (query.tagId) {
     const taggedIds = (
-      await db
-        .select({ id: postTags.postId })
-        .from(postTags)
-        .where(eq(postTags.tagId, query.tagId))
+      await db.select({ id: postTags.postId }).from(postTags).where(eq(postTags.tagId, query.tagId))
     ).map((row) => row.id);
 
     if (taggedIds.length === 0) {

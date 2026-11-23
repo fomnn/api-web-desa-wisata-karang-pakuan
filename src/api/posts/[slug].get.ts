@@ -1,7 +1,7 @@
 import { defineHandler, defineRouteMeta } from "nitro";
-import { getDb } from "../../db/client";
-import { cachedJson } from "../../utils/cache";
-import { getSlugParam, notFound } from "../../utils/http";
+import { getDb } from "@src/db/client";
+import { cachedJson } from "@src/utils/cache";
+import { getSlugParam, notFound } from "@src/utils/http";
 
 defineRouteMeta({
   openAPI: {

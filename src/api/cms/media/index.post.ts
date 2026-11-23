@@ -2,15 +2,15 @@ import { env } from "cloudflare:workers";
 import { HTTPError, defineHandler, defineRouteMeta } from "nitro";
 import { getRequestHeader, readFormData } from "nitro/h3";
 import * as v from "valibot";
-import { getDb } from "../../../db/client";
-import { media } from "../../../db/schema";
-import { badRequest, writeOrThrow } from "../../../utils/http";
+import { getDb } from "@src/db/client";
+import { media } from "@src/db/schema";
+import { badRequest, writeOrThrow } from "@src/utils/http";
 import {
   MAX_IMAGE_BYTES,
   MAX_IMAGE_MB,
   imageExtension,
   mediaUploadFieldsSchema,
-} from "../../../validators/media";
+} from "@src/validators/media";
 
 defineRouteMeta({
   openAPI: {

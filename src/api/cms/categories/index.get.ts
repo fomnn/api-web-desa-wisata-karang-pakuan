@@ -1,7 +1,7 @@
 import { asc } from "drizzle-orm";
 import { defineHandler, defineRouteMeta } from "nitro";
-import { getDb } from "../../../db/client";
-import { categories } from "../../../db/schema";
+import { getDb } from "@src/db/client";
+import { categories } from "@src/db/schema";
 
 // `defineRouteMeta` is a static macro: reusable components must be inline
 // literals, and Nitro hoists `$global` from any route into the spec's
