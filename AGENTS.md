@@ -25,7 +25,7 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 ## Layout and conventions
 
 - `src/` is `serverDir`; paths map to URLs (`src/api/cms/posts/[id].get.ts` → `GET /api/cms/posts/:id`). Static files stay in `public/`.
-- CMS routes for posts, events, products, categories and tags live under `/api/cms`; read-only public routes live under `/api`. `sessions`, `media`, `albumMedia` and `contact_messages` exist in the schema but have no endpoints.
+- CMS routes for posts, events, products, categories and tags live under `/api/cms`; read-only public routes live under `/api`. Images are uploaded with `POST /api/cms/media` (multipart, stored in the `STORAGE` R2 bucket). `sessions`, `albumMedia` and `contact_messages` exist in the schema but have no endpoints.
 - No auth exists: every CMS route is public and there is no current-user context, even though `posts.authorId` is required.
 - Validators live in `src/validators/*.ts` with shared rules in `common.ts`. Use `readValidatedBody` / `getValidatedQuery` from `nitro/h3`; query values arrive as strings, so numerics use `v.pipe(v.string(), v.toNumber(), ...)` (see `paginationEntries`).
 - Throw `HTTPError` through the helpers in `src/utils/http.ts` (`getIdParam`, `notFound`, `badRequest`). Wrap writes in `writeOrThrow`: D1 errors are untyped, and it maps `UNIQUE constraint failed` → 409 and `FOREIGN KEY constraint failed` → 422. Don't duplicate that handling.
