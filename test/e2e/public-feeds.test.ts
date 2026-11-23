@@ -110,7 +110,11 @@ beforeAll(async () => {
       },
     ])
     .returning();
-  albumId = insertedAlbums.find((album) => album.slug === "festival-panen-2025")!.id;
+  const festivalAlbum = insertedAlbums.find((album) => album.slug === "festival-panen-2025");
+  if (!festivalAlbum) {
+    throw new Error("Festival album was not inserted");
+  }
+  albumId = festivalAlbum.id;
 
   await db.insert(albumMedia).values([
     { albumId, mediaId: secondMediaId, sortOrder: 1 },
