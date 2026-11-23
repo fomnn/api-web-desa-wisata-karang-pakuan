@@ -86,15 +86,17 @@ defineRouteMeta({
           },
           PublicMedia: {
             type: "object",
-            required: ["id", "key", "filename", "mimeType", "sizeBytes", "createdAt"],
+            required: ["id", "key", "filename", "mimeType", "kind", "sizeBytes", "createdAt"],
             properties: {
               id: { type: "integer" },
               key: { type: "string" },
               filename: { type: "string" },
               mimeType: { type: "string" },
+              kind: { type: "string", enum: ["image", "video"] },
               sizeBytes: { type: "integer" },
               width: { type: ["integer", "null"] },
               height: { type: ["integer", "null"] },
+              durationSeconds: { type: ["integer", "null"] },
               alt: { type: ["string", "null"] },
               caption: { type: ["string", "null"] },
               createdAt: { type: "string", format: "date-time" },

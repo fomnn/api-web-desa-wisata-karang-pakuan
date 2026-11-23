@@ -8,15 +8,17 @@ import { badRequest, writeOrThrow } from "@src/utils/http";
 import {
   MAX_IMAGE_BYTES,
   MAX_IMAGE_MB,
-  imageExtension,
+  MAX_VIDEO_BYTES,
+  MAX_VIDEO_MB,
+  mediaType,
   mediaUploadFieldsSchema,
 } from "@src/validators/media";
 
 defineRouteMeta({
   openAPI: {
     tags: ["Media"],
-    summary: "Upload an image",
-    description: `Stores a JPEG, PNG, WebP, GIF or AVIF image in R2 (max ${MAX_IMAGE_MB} MB) and records it in media. The returned key identifies the stored object.`,
+    summary: "Upload an image or video",
+    description: `Stores a JPEG, PNG, WebP, GIF or AVIF image (max ${MAX_IMAGE_MB} MB) or an MP4, WebM or MOV video (max ${MAX_VIDEO_MB} MB) in R2 and records it in media. The returned key identifies the stored object.`,
     operationId: "uploadMedia",
     requestBody: {
       required: true,
@@ -29,7 +31,7 @@ defineRouteMeta({
               file: {
                 type: "string",
                 format: "binary",
-                description: `Image file (JPEG, PNG, WebP, GIF or AVIF), max ${MAX_IMAGE_MB} MB`,
+                description: `Media file: an image (JPEG, PNG, WebP, GIF or AVIF, max ${MAX_IMAGE_MB} MB) or a video (MP4, WebM or MOV, max ${MAX_VIDEO_MB} MB)`,
               },
               uploadedBy: {
                 type: "integer",
@@ -39,12 +41,27 @@ defineRouteMeta({
               alt: {
                 type: ["string", "null"],
                 maxLength: 500,
-                description: "Alternative text for the image",
+                description: "Alternative text for the media",
               },
               caption: {
                 type: ["string", "null"],
                 maxLength: 1000,
-                description: "Caption for the image",
+                description: "Caption for the media",
+              },
+              width: {
+                type: ["integer", "null"],
+                minimum: 1,
+                description: "Intrinsic width in pixels",
+              },
+              height: {
+                type: ["integer", "null"],
+                minimum: 1,
+                description: "Intrinsic height in pixels",
+              },
+              durationSeconds: {
+                type: ["integer", "null"],
+                minimum: 1,
+                description: "Duration in seconds; videos only",
               },
             },
           },
@@ -69,7 +86,7 @@ defineRouteMeta({
         },
       },
       413: {
-        description: `Image exceeds ${MAX_IMAGE_MB} MB`,
+        description: `Media exceeds the size limit (${MAX_IMAGE_MB} MB for images, ${MAX_VIDEO_MB} MB for videos)`,
         content: {
           "application/json": {
             schema: { $ref: "#/components/schemas/Error" },
@@ -77,7 +94,8 @@ defineRouteMeta({
         },
       },
       415: {
-        description: "Body is not multipart/form-data or the file is not a supported image type",
+        description:
+          "Body is not multipart/form-data or the file is not a supported image or video type",
         content: {
           "application/json": {
             schema: { $ref: "#/components/schemas/Error" },
@@ -106,15 +124,26 @@ defineRouteMeta({
         schemas: {
           Media: {
             type: "object",
-            required: ["id", "key", "filename", "mimeType", "sizeBytes", "uploadedBy", "createdAt"],
+            required: [
+              "id",
+              "key",
+              "filename",
+              "mimeType",
+              "kind",
+              "sizeBytes",
+              "uploadedBy",
+              "createdAt",
+            ],
             properties: {
               id: { type: "integer" },
               key: { type: "string" },
               filename: { type: "string" },
               mimeType: { type: "string" },
+              kind: { type: "string", enum: ["image", "video"] },
               sizeBytes: { type: "integer" },
               width: { type: ["integer", "null"] },
               height: { type: ["integer", "null"] },
+              durationSeconds: { type: ["integer", "null"] },
               alt: { type: ["string", "null"] },
               caption: { type: ["string", "null"] },
               uploadedBy: { type: "integer" },
@@ -150,6 +179,9 @@ export default defineHandler(async (event) => {
     uploadedBy: form.get("uploadedBy"),
     alt: form.get("alt"),
     caption: form.get("caption"),
+    width: form.get("width"),
+    height: form.get("height"),
+    durationSeconds: form.get("durationSeconds"),
   });
 
   if (!fields.success) {
@@ -166,27 +198,34 @@ export default defineHandler(async (event) => {
     throw badRequest("file must not be empty");
   }
 
-  const extension = imageExtension(file.type);
+  const type = mediaType(file.type);
 
-  if (!extension) {
+  if (!type) {
     throw new HTTPError({
       status: 415,
       statusText: "Unsupported Media Type",
-      message: "file must be a JPEG, PNG, WebP, GIF or AVIF image",
+      message: "file must be an image (JPEG, PNG, WebP, GIF or AVIF) or a video (MP4, WebM or MOV)",
     });
   }
 
-  if (file.size > MAX_IMAGE_BYTES) {
+  const limitBytes = type.kind === "video" ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  const limitMb = type.kind === "video" ? MAX_VIDEO_MB : MAX_IMAGE_MB;
+
+  if (file.size > limitBytes) {
     throw new HTTPError({
       status: 413,
       statusText: "Content Too Large",
-      message: `file must be at most ${MAX_IMAGE_MB} MB`,
+      message: `file must be at most ${limitMb} MB`,
     });
   }
 
-  const key = `media/${crypto.randomUUID()}.${extension}`;
+  if (type.kind === "image" && fields.output.durationSeconds !== null) {
+    throw badRequest("durationSeconds is only valid for video uploads");
+  }
+
+  const key = `media/${crypto.randomUUID()}.${type.ext}`;
   const rawName = file.name.split(/[\\/]/).pop()?.trim();
-  const filename = (rawName || `image.${extension}`).slice(0, 255);
+  const filename = (rawName || `media.${type.ext}`).slice(0, 255);
 
   await env.STORAGE.put(key, file, {
     httpMetadata: {
@@ -203,7 +242,11 @@ export default defineHandler(async (event) => {
           key,
           filename,
           mimeType: file.type,
+          kind: type.kind,
           sizeBytes: file.size,
+          width: fields.output.width,
+          height: fields.output.height,
+          durationSeconds: fields.output.durationSeconds,
           alt: fields.output.alt,
           caption: fields.output.caption,
           uploadedBy: fields.output.uploadedBy,

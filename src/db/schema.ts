@@ -47,9 +47,13 @@ export const media = sqliteTable("media", {
   key: text("key").notNull().unique(),
   filename: text("filename").notNull(),
   mimeType: text("mime_type").notNull(),
+  kind: text("kind", { enum: ["image", "video"] })
+    .notNull()
+    .default("image"),
   sizeBytes: integer("size_bytes").notNull(),
   width: integer("width"),
   height: integer("height"),
+  durationSeconds: integer("duration_seconds"),
   alt: text("alt"),
   caption: text("caption"),
   uploadedBy: integer("uploaded_by")
@@ -190,15 +194,6 @@ export const albumMedia = sqliteTable(
   ],
 );
 
-export const settings = sqliteTable("settings", {
-  key: text("key").primaryKey(),
-  value: text("value", { mode: "json" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => new Date()),
-});
-
 export const contactMessages = sqliteTable(
   "contact_messages",
   {
@@ -240,7 +235,6 @@ export const schema = {
   products,
   albums,
   albumMedia,
-  settings,
   contactMessages,
   rateLimits,
 };

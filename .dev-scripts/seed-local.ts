@@ -20,7 +20,6 @@ import {
   posts,
   products,
   rateLimits,
-  settings,
   tags,
   users,
 } from "../src/db/schema.ts";
@@ -60,7 +59,6 @@ try {
   await db.delete(categories);
   await db.delete(tags);
   await db.delete(users);
-  await db.delete(settings);
   await db.delete(contactMessages);
   await db.delete(rateLimits);
 
@@ -157,6 +155,18 @@ try {
         height: 1200,
         alt: "Kerajinan anyaman bambu",
         uploadedBy: author.id,
+      },
+      {
+        key: "seed/festival-panen-2025.mp4",
+        filename: "festival-panen-2025.mp4",
+        mimeType: "video/mp4",
+        kind: "video",
+        sizeBytes: 18400000,
+        width: 1920,
+        height: 1080,
+        durationSeconds: 42,
+        caption: "Sorotan Festival Panen 2025",
+        uploadedBy: editor.id,
       },
     ])
     .returning();
@@ -478,6 +488,11 @@ try {
         sortOrder: 2,
       },
       {
+        albumId: pick(albumBySlug, "festival-panen-2025").id,
+        mediaId: coverId("seed/festival-panen-2025.mp4"),
+        sortOrder: 3,
+      },
+      {
         albumId: pick(albumBySlug, "keindahan-curug-cimuncang").id,
         mediaId: coverId("seed/curug-cimuncang.jpg"),
         sortOrder: 0,
@@ -489,31 +504,6 @@ try {
       },
     ])
     .returning();
-
-  await db.insert(settings).values([
-    {
-      key: "site",
-      value: {
-        name: "Desa Wisata Karang Pakuan",
-        tagline: "Alam, budaya, dan kuliner dari lereng bukit",
-        description:
-          "Desa wisata di Kabupaten Sumedang dengan curug, sawah terasering, dan homestay warga.",
-        contact: {
-          email: "halo@karangpakuan.desa.id",
-          phone: "+62 812-0000-0000",
-          address: "Jalan Raya Karang Pakuan, Sumedang, Jawa Barat",
-        },
-      },
-    },
-    {
-      key: "social_links",
-      value: {
-        instagram: "https://instagram.com/desawisatakarangpakuan",
-        facebook: "https://facebook.com/desawisatakarangpakuan",
-        youtube: "https://youtube.com/@desawisatakarangpakuan",
-      },
-    },
-  ]);
 
   const contactRows = await db
     .insert(contactMessages)
@@ -542,7 +532,7 @@ try {
       `${categoryRows.length} categories, ${tagRows.length} tags, ${postRows.length} posts, ` +
       `${postTagRows.length} post tags, ${eventRows.length} events, ` +
       `${productRows.length} products, ${albumRows.length} albums, ` +
-      `${albumMediaRows.length} album media, 2 settings, ${contactRows.length} contact messages.`,
+      `${albumMediaRows.length} album media, ${contactRows.length} contact messages.`,
   );
 } finally {
   await dispose();
