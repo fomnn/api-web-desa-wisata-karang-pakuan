@@ -11,6 +11,9 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm build && vitest run --config vitest.e2e.config.ts",
     "cf-typegen": "wrangler types",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -26,6 +29,7 @@
     "valibot": "^1.5.0"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.9.0",
     "@types/node": "latest",
     "drizzle-kit": "1.0.0-rc.5",
     "jiti": "^2.7.0",
@@ -35,6 +39,7 @@
     "rolldown": "^1",
     "tsrs": "0.25.0-ts7.1.0-beta",
     "typescript": "latest",
+    "vitest": "^4.1.12",
     "wrangler": "^4.163.0"
   }
 }

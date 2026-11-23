@@ -10,7 +10,7 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 - `pnpm lint` / `pnpm lint:fix` — oxlint (correctness = error, suspicious = warn, type-aware).
 - `pnpm format` / `pnpm format:check` — oxfmt, printWidth 100. Ignores `.agents/**`, `.output/**`, `worker-configuration.d.ts`, `**/snapshot.json`.
 - `npx tsc --noEmit` — typecheck (no package script exists).
-- No test suite. `pnpm build` emits `.output/`; `pnpm preview` serves that build via `wrangler dev`. Deploy with `npx nitro deploy --prebuilt` or `npx wrangler --cwd .output deploy`.
+- `pnpm test` — Vitest unit tests in `test/unit` (Node, no Workers runtime). `pnpm test:watch` for the loop. `pnpm test:e2e` runs `pnpm build` first, then the HTTP suite in `test/e2e` inside workerd. `pnpm build` emits `.output/`; `pnpm preview` serves that build via `wrangler dev`. Deploy with `npx nitro deploy --prebuilt` or `npx wrangler --cwd .output deploy`.
 - `pnpm cf-typegen` — regenerate `worker-configuration.d.ts` after changing bindings or vars in `wrangler.jsonc`; never hand-edit that file.
 
 ## Database
@@ -34,6 +34,12 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 - Every route exports a default `defineHandler` and calls `defineRouteMeta` with complete inline OpenAPI. Component schemas are declared in that resource's `index.get.ts` under `$global`; add new schemas there rather than in a central file. Spec is served at `/_openapi.json`, Scalar at `/_scalar` (`openAPI.production: "runtime"`).
 - No auto-imports: import from `"nitro"`, `"nitro/h3"`, and otherwise use `@src/<path>` for anything crossing directories (maps to `src/`, defined in `nitro.config.ts` + `tsconfig.json`) or `./` for siblings. `@src` only resolves inside the Nitro bundle, so `.dev-scripts/` and `nitro.config.ts` keep relative paths.
 - `POST /api/cms/media` accepts multipart `file` + `uploadedBy`, allows images (10 MB) and videos (50 MB), stores objects as `media/<uuid>.<ext>` in R2 (`STORAGE`), and deletes the object if the D1 insert fails. No route serves R2 objects; clients only receive the `key`.
+
+## Tests
+
+- Two configs, on purpose: `vitest.config.ts` runs `test/unit/**` in Node for validators and utils; `vitest.e2e.config.ts` uses `@cloudflare/vitest-plugin` with `main: "./.output/server/index.mjs"` so tests hit real routes, D1 and R2 in workerd. The unit config aliases `cloudflare:workers` to `test/unit/stubs/cloudflare-workers.ts`; e2e reads migrations from `src/db/migrations/*/migration.sql` and applies them in `test/e2e/apply-migrations.ts`.
+- E2E storage is isolated per test **file**, not per test. Seed fixtures per file (`seedBase()` in `test/e2e/helpers.ts`); the D1 `rate_limits` counter survives across tests in the same file, so use `write()`/`writeJson()` helpers that set a fresh `cf-connecting-ip` unless a test targets the limiter.
+- `test:e2e` always rebuilds; edits to `src` are invisible until the next build. Direct `vitest --config vitest.e2e.config.ts` reuses the last build.
 
 ## Gotchas
 

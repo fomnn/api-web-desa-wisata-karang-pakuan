@@ -5,6 +5,14 @@ REST API for the Karang Pakuan village tourism website and its CMS. Built with
 [Drizzle ORM](https://orm.drizzle.team) on D1 for storage, [Valibot](https://valibot.dev) for
 validation, and an OpenAPI spec generated at runtime.
 
+## Todo
+
+_Nothing yet._
+
+## Needs confirmation
+
+- Auth for admin should be multi admin or just one credential?
+
 ## Stack
 
 | Concern    | Choice                                                    |
@@ -159,14 +167,6 @@ npx nitro deploy --prebuilt
 
 Set `CORS_ORIGINS` in `wrangler.jsonc` to the deployed frontend origins before shipping, and run
 `pnpm db:migrate` against the production database.
-
-## Todo
-
-_Nothing yet._
-
-## Needs confirmation
-
-_Nothing yet._
 
 ## Notes for contributors
 
