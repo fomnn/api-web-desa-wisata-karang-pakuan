@@ -20,5 +20,26 @@
       "bucket_name": "dev-web-desa-wisata-karang-pakuan-storage",
       "binding": "STORAGE"
     }
-  ]
+  ],
+  "env": {
+    "staging": {
+      "name": "api-web-desa-wisata-karang-pakuan-staging",
+      "vars": {
+        "CORS_ORIGINS": ""
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "web-desa-wisata-karang-pakuan-staging",
+          "database_id": "86ac9d60-bcce-44b9-a5a6-156bc36bac51"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "bucket_name": "web-desa-wisata-karang-pakuan-staging-storage",
+          "binding": "STORAGE"
+        }
+      ]
+    }
+  }
 }

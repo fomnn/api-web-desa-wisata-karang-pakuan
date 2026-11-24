@@ -153,20 +153,108 @@ public/           static files served as-is
 2. `pnpm db:generate` to write a new timestamped migration (leave `snapshot.json` files alone).
 3. `pnpm db:migrate:local` to apply it locally.
 
-Remote migrations need `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_DATABASE_ID` and
-`CLOUDFLARE_D1_TOKEN` in the environment. Timestamps are stored as unix seconds and exposed as
+Remote migrations require all three of `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_DATABASE_ID`, and
+`CLOUDFLARE_D1_TOKEN`. In CI, the database ID is read from `wrangler.jsonc` and the D1 token is the
+staging `CLOUDFLARE_API_TOKEN` secret. Timestamps are stored as unix seconds and exposed as
 timestamp columns and ISO strings in JSON.
 
 ## Deployment
 
+The Worker has a top-level configuration for local development plus a persistent staging
+environment:
+
+| Environment | Worker                                      | D1                                      | R2                                              |
+| ----------- | ------------------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| top-level   | `api-web-desa-wisata-karang-pakuan`         | `dev-web-desa-wisata-karang-pakuan`     | `dev-web-desa-wisata-karang-pakuan-storage`     |
+| staging     | `api-web-desa-wisata-karang-pakuan-staging` | `web-desa-wisata-karang-pakuan-staging` | `web-desa-wisata-karang-pakuan-staging-storage` |
+
+The top-level bindings are only for local development and e2e. Production is intentionally not
+deployed yet: it waits for CMS auth.
+
+### Variables and secrets
+
+The following table covers the variables used by the Worker, local tooling, and CI.
+
+| Name                     | Where it is set                                                     | Required               | Purpose                                                |
+| ------------------------ | ------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------ |
+| `CORS_ORIGINS`           | `wrangler.jsonc` → `vars`, separately per environment               | Conditional[^cors]     | Allowed browser origins; empty means no CORS headers   |
+| `LOCAL_D1_FILE`          | `.env`, written by `pnpm env:local-d1`                              | No (auto-generated)    | Path to the local D1 file used by Drizzle              |
+| `CLOUDFLARE_ACCOUNT_ID`  | GitHub repository variable; also exported for manual migrations     | Yes for deploy/migrate | Cloudflare account for Wrangler and Drizzle            |
+| `CLOUDFLARE_API_TOKEN`   | GitHub Environment `staging` secret                                 | Yes for deploy         | Wrangler deploy, and D1 migrations through the mapping |
+| `CLOUDFLARE_DATABASE_ID` | Shell for manual migrations; CI reads it from `wrangler.jsonc`      | Yes for remote migrate | Target D1 database for Drizzle                         |
+| `CLOUDFLARE_D1_TOKEN`    | Shell for manual migrations; CI maps it from `CLOUDFLARE_API_TOKEN` | Yes for remote migrate | Drizzle authentication against the D1 HTTP API         |
+| `STAGING_API_URL`        | GitHub repository variable                                          | No                     | Enables the post-deploy smoke test                     |
+
+[^cors]:
+    Required when a browser frontend calls the API from another origin. It can stay empty
+    while no staging frontend exists.
+
+`DB` and `STORAGE` are Worker bindings, not environment variables. They are declared per
+environment in `wrangler.jsonc`.
+
+### GitHub Actions configuration
+
+These are the only entries stored on GitHub:
+
+| Name                    | Type                | Scope                          | Required | Used by                                          |
+| ----------------------- | ------------------- | ------------------------------ | -------- | ------------------------------------------------ |
+| `CLOUDFLARE_ACCOUNT_ID` | Repository variable | Repository                     | Yes      | Wrangler deploy and Drizzle migrations           |
+| `CLOUDFLARE_API_TOKEN`  | Environment secret  | `staging` (later `production`) | Yes      | Wrangler deploy; mapped to `CLOUDFLARE_D1_TOKEN` |
+| `STAGING_API_URL`       | Repository variable | Repository                     | No       | Post-deploy smoke test                           |
+
+Create the token from the **Edit Cloudflare Workers** template, then add **Account → D1 → Edit**
+so the migration step can run. Keep it as an environment secret, never a repository variable or a
+committed file.
+
+`CLOUDFLARE_DATABASE_ID` and `CLOUDFLARE_D1_TOKEN` are not stored in GitHub: the workflow reads the
+database ID from `wrangler.jsonc` and passes the environment's `CLOUDFLARE_API_TOKEN` as the
+Drizzle token.
+
+Using the GitHub CLI:
+
 ```bash
-pnpm build
-npx nitro deploy --prebuilt
-# or: npx wrangler --cwd .output deploy
+gh variable set CLOUDFLARE_ACCOUNT_ID --body "<account-id>"
+gh variable set STAGING_API_URL --body "https://<worker>.workers.dev" # optional
+gh secret set CLOUDFLARE_API_TOKEN --env staging --body "<api-token>"
 ```
 
-Set `CORS_ORIGINS` in `wrangler.jsonc` to the deployed frontend origins before shipping, and run
-`pnpm db:migrate` against the production database.
+### Staging
+
+Pushes to `dev` run `.github/workflows/deploy-staging.yml`: install, lint, format check,
+typecheck, unit tests, e2e (which builds), apply pending D1 migrations, deploy, then optionally
+smoke test. Pull requests run the same checks through `.github/workflows/ci.yml`.
+
+The workflow reads the staging database ID from `wrangler.jsonc`, so keep that file strict JSON
+(no comments, no trailing commas).
+
+Manual deploy and migration:
+
+```bash
+pnpm build
+pnpm exec wrangler deploy -c .output/server/wrangler.json --env staging
+
+CLOUDFLARE_ACCOUNT_ID=... \
+CLOUDFLARE_DATABASE_ID=<staging database id> \
+CLOUDFLARE_D1_TOKEN=... \
+pnpm db:migrate
+```
+
+`CORS_ORIGINS` in `env.staging` is empty until a staging frontend exists; while empty, browsers on
+other origins receive no CORS headers.
+
+### Production activation checklist
+
+Production is intentionally disabled. When CMS auth is ready:
+
+1. Create `web-desa-wisata-karang-pakuan-production` (D1) and
+   `web-desa-wisata-karang-pakuan-production-storage` (R2).
+2. Add `env.production` to `wrangler.jsonc` with the Worker name
+   `api-web-desa-wisata-karang-pakuan-production`, its own bindings, and `CORS_ORIGINS`.
+3. Create the `production` GitHub Environment with required reviewers and its own
+   `CLOUDFLARE_API_TOKEN`.
+4. Copy `deploy-staging.yml` to `deploy-production.yml`, trigger it from `main`, and use
+   `--env production`.
+5. Run the staging flow against the release commit first, then approve production.
 
 ## Notes for contributors
 
