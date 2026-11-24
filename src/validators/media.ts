@@ -21,6 +21,17 @@ export function mediaType(mimeType: string): { ext: string; kind: "image" | "vid
   return MEDIA_TYPES[mimeType] ?? null;
 }
 
+const MEDIA_EXTENSIONS = [...new Set(Object.values(MEDIA_TYPES).map((type) => type.ext))];
+
+/**
+ * Matches the keys the upload route creates (`media/<uuid>.<ext>`). Anything
+ * else is not served, so the media route never exposes arbitrary bucket keys.
+ */
+export const MEDIA_KEY_PATTERN = new RegExp(
+  "^media/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" +
+    `\\.(?:${MEDIA_EXTENSIONS.join("|")})$`,
+);
+
 function optionalText(field: string, maxLength: number) {
   return v.nullish(
     v.pipe(

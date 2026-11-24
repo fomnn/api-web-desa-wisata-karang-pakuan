@@ -1,6 +1,7 @@
 import { defineHandler, defineRouteMeta } from "nitro";
 import { getDb } from "@src/db/client";
 import { getIdParam, notFound } from "@src/utils/http";
+import { mediaUrl } from "@src/utils/media";
 
 defineRouteMeta({
   openAPI: {
@@ -54,5 +55,8 @@ export default defineHandler(async (event) => {
 
   if (!item) throw notFound("Product");
 
-  return item;
+  return {
+    ...item,
+    cover: item.cover && { ...item.cover, url: mediaUrl(event, item.cover.key) },
+  };
 });

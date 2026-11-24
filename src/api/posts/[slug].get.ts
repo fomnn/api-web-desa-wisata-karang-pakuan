@@ -2,6 +2,7 @@ import { defineHandler, defineRouteMeta } from "nitro";
 import { getDb } from "@src/db/client";
 import { cachedJson } from "@src/utils/cache";
 import { getSlugParam, notFound } from "@src/utils/http";
+import { mediaUrl } from "@src/utils/media";
 
 defineRouteMeta({
   openAPI: {
@@ -64,5 +65,7 @@ export default defineHandler(async (event) => {
 
   if (!post) throw notFound("Post");
 
-  return cachedJson(event, post, 300);
+  const cover = post.cover && { ...post.cover, url: mediaUrl(event, post.cover.key) };
+
+  return cachedJson(event, { ...post, cover }, 300);
 });

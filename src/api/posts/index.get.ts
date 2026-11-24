@@ -5,6 +5,7 @@ import { getDb } from "@src/db/client";
 import { postTags, posts } from "@src/db/schema";
 import { cachedJson } from "@src/utils/cache";
 import { pagination } from "@src/utils/http";
+import { mediaUrl } from "@src/utils/media";
 import { listPublicPostsQuerySchema } from "@src/validators/posts";
 
 defineRouteMeta({
@@ -86,10 +87,24 @@ defineRouteMeta({
           },
           PublicMedia: {
             type: "object",
-            required: ["id", "key", "filename", "mimeType", "kind", "sizeBytes", "createdAt"],
+            required: [
+              "id",
+              "key",
+              "url",
+              "filename",
+              "mimeType",
+              "kind",
+              "sizeBytes",
+              "createdAt",
+            ],
             properties: {
               id: { type: "integer" },
               key: { type: "string" },
+              url: {
+                type: "string",
+                format: "uri",
+                description: "Absolute URL served by `GET /media/<key>`",
+              },
               filename: { type: "string" },
               mimeType: { type: "string" },
               kind: { type: "string", enum: ["image", "video"] },
@@ -204,7 +219,7 @@ export default defineHandler(async (event) => {
 
   const countWhere = and(...filters)!;
 
-  const [data, totalRows] = await Promise.all([
+  const [rows, totalRows] = await Promise.all([
     db.query.posts.findMany({
       where,
       columns: {
@@ -224,6 +239,11 @@ export default defineHandler(async (event) => {
     }),
     db.select({ total: count() }).from(posts).where(countWhere),
   ]);
+
+  const data = rows.map((post) => ({
+    ...post,
+    cover: post.cover && { ...post.cover, url: mediaUrl(event, post.cover.key) },
+  }));
 
   return cachedJson(
     event,

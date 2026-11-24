@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
-import { mediaType, mediaUploadFieldsSchema } from "@src/validators/media";
+import { MEDIA_KEY_PATTERN, mediaType, mediaUploadFieldsSchema } from "@src/validators/media";
 
 describe("mediaType", () => {
   it.each([
@@ -23,6 +23,24 @@ describe("mediaType", () => {
 
   it("is case-sensitive, matching what browsers send", () => {
     expect(mediaType("IMAGE/PNG")).toBeNull();
+  });
+});
+
+describe("MEDIA_KEY_PATTERN", () => {
+  it.each(["jpg", "png", "webp", "gif", "avif", "mp4", "webm", "mov"])(
+    "accepts upload keys with a .%s extension",
+    (ext) => {
+      expect(MEDIA_KEY_PATTERN.test(`media/2f7c1e6a-1c1f-4c1e-9f4a-0d3c2b1a0f9e.${ext}`)).toBe(
+        true,
+      );
+    },
+  );
+
+  it("rejects anything the upload route would not create", () => {
+    expect(MEDIA_KEY_PATTERN.test("media/cover.jpg")).toBe(false);
+    expect(MEDIA_KEY_PATTERN.test("seed/2f7c1e6a-1c1f-4c1e-9f4a-0d3c2b1a0f9e.jpg")).toBe(false);
+    expect(MEDIA_KEY_PATTERN.test("media/2f7c1e6a-1c1f-4c1e-9f4a-0d3c2b1a0f9e.svg")).toBe(false);
+    expect(MEDIA_KEY_PATTERN.test("media/../media/x.jpg")).toBe(false);
   });
 });
 

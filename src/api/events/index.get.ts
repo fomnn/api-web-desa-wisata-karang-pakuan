@@ -5,6 +5,7 @@ import { getDb } from "@src/db/client";
 import { events } from "@src/db/schema";
 import { cachedJson } from "@src/utils/cache";
 import { pagination } from "@src/utils/http";
+import { mediaUrl } from "@src/utils/media";
 import { paginationQuerySchema } from "@src/validators/common";
 
 defineRouteMeta({
@@ -109,7 +110,7 @@ export default defineHandler(async (event) => {
     or(gte(events.startAt, now), and(isNotNull(events.endAt), gte(events.endAt, now))),
   )!;
 
-  const [data, totalRows] = await Promise.all([
+  const [rows, totalRows] = await Promise.all([
     db.query.events.findMany({
       where: {
         status: "published",
@@ -123,6 +124,11 @@ export default defineHandler(async (event) => {
     }),
     db.select({ total: count() }).from(events).where(countWhere),
   ]);
+
+  const data = rows.map((item) => ({
+    ...item,
+    cover: item.cover && { ...item.cover, url: mediaUrl(event, item.cover.key) },
+  }));
 
   return cachedJson(
     event,

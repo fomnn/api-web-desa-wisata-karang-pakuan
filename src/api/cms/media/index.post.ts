@@ -5,6 +5,7 @@ import * as v from "valibot";
 import { getDb } from "@src/db/client";
 import { media } from "@src/db/schema";
 import { badRequest, writeOrThrow } from "@src/utils/http";
+import { mediaUrl } from "@src/utils/media";
 import {
   MAX_IMAGE_BYTES,
   MAX_IMAGE_MB,
@@ -18,7 +19,7 @@ defineRouteMeta({
   openAPI: {
     tags: ["Media"],
     summary: "Upload an image or video",
-    description: `Stores a JPEG, PNG, WebP, GIF or AVIF image (max ${MAX_IMAGE_MB} MB) or an MP4, WebM or MOV video (max ${MAX_VIDEO_MB} MB) in R2 and records it in media. The returned key identifies the stored object.`,
+    description: `Stores a JPEG, PNG, WebP, GIF or AVIF image (max ${MAX_IMAGE_MB} MB) or an MP4, WebM or MOV video (max ${MAX_VIDEO_MB} MB) in R2 and records it in media. The returned key identifies the stored object; url is where it is served from.`,
     operationId: "uploadMedia",
     requestBody: {
       required: true,
@@ -127,6 +128,7 @@ defineRouteMeta({
             required: [
               "id",
               "key",
+              "url",
               "filename",
               "mimeType",
               "kind",
@@ -137,6 +139,11 @@ defineRouteMeta({
             properties: {
               id: { type: "integer" },
               key: { type: "string" },
+              url: {
+                type: "string",
+                format: "uri",
+                description: "Absolute URL served by `GET /media/<key>`",
+              },
               filename: { type: "string" },
               mimeType: { type: "string" },
               kind: { type: "string", enum: ["image", "video"] },
@@ -260,7 +267,7 @@ export default defineHandler(async (event) => {
     }
 
     event.res.status = 201;
-    return created;
+    return { ...created, url: mediaUrl(event, created.key) };
   } catch (error) {
     // Do not leave an orphaned object in R2 when the D1 insert fails.
     await env.STORAGE.delete(key).catch(() => {});

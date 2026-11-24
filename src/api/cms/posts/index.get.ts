@@ -94,10 +94,24 @@ defineRouteMeta({
           },
           Media: {
             type: "object",
-            required: ["id", "key", "filename", "mimeType", "sizeBytes", "uploadedBy", "createdAt"],
+            required: [
+              "id",
+              "key",
+              "url",
+              "filename",
+              "mimeType",
+              "sizeBytes",
+              "uploadedBy",
+              "createdAt",
+            ],
             properties: {
               id: { type: "integer" },
               key: { type: "string" },
+              url: {
+                type: "string",
+                format: "uri",
+                description: "Absolute URL served by `GET /media/<key>`",
+              },
               filename: { type: "string" },
               mimeType: { type: "string" },
               sizeBytes: { type: "integer" },

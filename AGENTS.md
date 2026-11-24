@@ -23,8 +23,8 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 
 ## Layout and conventions
 
-- `src/` is `serverDir`; paths map to URLs (`src/api/cms/posts/[id].get.ts` → `GET /api/cms/posts/:id`). Static files stay in `public/`.
-- API surface: full CRUD under `/api/cms/{posts,events,products,categories,tags}`, plus `GET /api/cms/users` and `POST /api/cms/media`. Public read-only: `/api/posts` and `/api/posts/:slug`, `/api/events`, `/api/products`, `/api/categories`, `/api/albums`. No endpoints exist for album CRUD, `albumMedia`, `sessions`, or `contactMessages`.
+- `src/` is `serverDir`; paths map to URLs (`src/api/cms/posts/[id].get.ts` → `GET /api/cms/posts/:id`; `src/routes/media/[file].get.ts` → `GET /media/:file`, since only `src/api` and `src/routes` are scanned). Static files stay in `public/`.
+- API surface: full CRUD under `/api/cms/{posts,events,products,categories,tags}`, plus `GET /api/cms/users` and `POST /api/cms/media`. Public read-only: `/api/posts` and `/api/posts/:slug`, `/api/events`, `/api/products`, `/api/categories`, `/api/albums`, plus `GET /media/:file` outside `/api`. No endpoints exist for album CRUD, `albumMedia`, `sessions`, or `contactMessages`.
 - No auth exists: every CMS route is public and there is no current-user context, even though `posts.authorId` is required.
 - Middleware runs in filename order (`0.request-id`, `1.cors`, `2.security-headers`, `3.rate-limit`); `src/plugins/observability.ts` hooks responses to re-apply headers and log requests/errors. All writes under `/api/` are limited to 60/min per client IP via the D1 `rate_limits` table and can return 429 + `x-ratelimit-*`; `pnpm db:seed:local` clears it. Public reads use `cachedJson()` for ETag/304.
 - CORS: `CORS_ORIGINS` (comma-separated, `*` allowed) comes from `wrangler.jsonc`; dev additionally allows localhost ports 3000/4173/5173. Wrangler environments do not inherit `vars` or bindings, so staging has its own `CORS_ORIGINS`, currently empty until a staging frontend exists.
@@ -33,7 +33,7 @@ Nitro v3 differs a lot from v2 and your knowledge is likely outdated: read https
 - List endpoints return `{ data, pagination }` via `pagination()`, newest first, default pageSize 50 (max 100). Creates set `event.res.status = 201`; deletes return `noContent()`; document expected 400/404/409/422/429, plus 304 for cached public reads.
 - Every route exports a default `defineHandler` and calls `defineRouteMeta` with complete inline OpenAPI. Component schemas are declared in that resource's `index.get.ts` under `$global`; add new schemas there rather than in a central file. Spec is served at `/_openapi.json`, Scalar at `/_scalar` (`openAPI.production: "runtime"`).
 - No auto-imports: import from `"nitro"`, `"nitro/h3"`, and otherwise use `@src/<path>` for anything crossing directories (maps to `src/`, defined in `nitro.config.ts` + `tsconfig.json`) or `./` for siblings. `@src` only resolves inside the Nitro bundle, so `.dev-scripts/` and `nitro.config.ts` keep relative paths.
-- `POST /api/cms/media` accepts multipart `file` + `uploadedBy`, allows images (10 MB) and videos (50 MB), stores objects as `media/<uuid>.<ext>` in R2 (`STORAGE`), and deletes the object if the D1 insert fails. No route serves R2 objects; clients only receive the `key`.
+- `POST /api/cms/media` accepts multipart `file` + `uploadedBy`, allows images (10 MB) and videos (50 MB), stores objects as `media/<uuid>.<ext>` in R2 (`STORAGE`), and deletes the object if the D1 insert fails. `GET /media/:file` streams those objects (Range and conditional headers pass through to R2) and only accepts keys matching `MEDIA_KEY_PATTERN` from `src/validators/media.ts`. Every media object in a response also carries `url`, derived by `mediaUrl()` in `src/utils/media.ts` from `MEDIA_BASE_URL` or, when that var is empty, the request origin.
 
 ## CI/CD
 

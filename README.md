@@ -72,9 +72,10 @@ paged with `page` (1-based) and `pageSize` (default 50, max 100).
 | GET    | `/api/products`    | Published products                                               |
 | GET    | `/api/categories`  | Categories                                                       |
 | GET    | `/api/albums`      | Published albums with their media                                |
+| GET    | `/media/:file`     | Streams a stored media object; supports `Range` requests         |
 
 Public reads send `ETag` and `Cache-Control` headers and answer `304 Not Modified` when the
-client's copy is current.
+client's copy is current. Every media object carries `key` and a ready-to-use absolute `url`.
 
 ### CMS
 
@@ -90,7 +91,7 @@ with `<resource>` being `posts`, `events`, `products`, `categories` or `tags`. A
 - `GET /api/cms/users` — list users
 - `POST /api/cms/media` — multipart upload (`file` + `uploadedBy`); images up to 10 MB, videos up
   to 50 MB, stored as `media/<uuid>.<ext>` in R2. The object is deleted again if the D1 insert
-  fails. Clients receive the object `key`; no route serves R2 objects.
+  fails. Responses carry the object `key` and its absolute `url`, which `GET /media/:file` serves.
 
 Example:
 
@@ -178,6 +179,7 @@ The following table covers the variables used by the Worker, local tooling, and 
 | Name                     | Where it is set                                                     | Required               | Purpose                                                |
 | ------------------------ | ------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------ |
 | `CORS_ORIGINS`           | `wrangler.jsonc` → `vars`, separately per environment               | Conditional[^cors]     | Allowed browser origins; empty means no CORS headers   |
+| `MEDIA_BASE_URL`         | `wrangler.jsonc` → `vars`, separately per environment               | No                     | Public base for media URLs; empty uses the API origin  |
 | `LOCAL_D1_FILE`          | `.env`, written by `pnpm env:local-d1`                              | No (auto-generated)    | Path to the local D1 file used by Drizzle              |
 | `CLOUDFLARE_ACCOUNT_ID`  | GitHub repository variable; also exported for manual migrations     | Yes for deploy/migrate | Cloudflare account for Wrangler and Drizzle            |
 | `CLOUDFLARE_API_TOKEN`   | GitHub Environment `staging` secret                                 | Yes for deploy         | Wrangler deploy, and D1 migrations through the mapping |
@@ -191,6 +193,10 @@ The following table covers the variables used by the Worker, local tooling, and 
 
 `DB` and `STORAGE` are Worker bindings, not environment variables. They are declared per
 environment in `wrangler.jsonc`.
+
+`MEDIA_BASE_URL` stays empty by default, so media `url` values point at this Worker
+(`GET /media/:file`). Set it to an R2 public bucket or custom domain to serve the same keys
+straight from storage instead and skip the Worker.
 
 ### GitHub Actions configuration
 

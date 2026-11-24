@@ -5,6 +5,7 @@ import { getDb } from "@src/db/client";
 import { albumMedia, albums, media } from "@src/db/schema";
 import { cachedJson } from "@src/utils/cache";
 import { pagination } from "@src/utils/http";
+import { mediaUrl } from "@src/utils/media";
 import { paginationQuerySchema } from "@src/validators/common";
 
 defineRouteMeta({
@@ -151,7 +152,11 @@ export default defineHandler(async (event) => {
 
   const data = albumRows.map((album) => ({
     ...album,
-    items: itemsByAlbum.get(album.id) ?? [],
+    cover: album.cover && { ...album.cover, url: mediaUrl(event, album.cover.key) },
+    items: (itemsByAlbum.get(album.id) ?? []).map((item) => ({
+      ...item,
+      url: mediaUrl(event, item.key),
+    })),
   }));
 
   return cachedJson(

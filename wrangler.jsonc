@@ -3,7 +3,8 @@
   "name": "api-web-desa-wisata-karang-pakuan",
   "compatibility_date": "2026-11-18",
   "vars": {
-    "CORS_ORIGINS": ""
+    "CORS_ORIGINS": "",
+    "MEDIA_BASE_URL": ""
   },
   "observability": {
     "enabled": true
@@ -25,7 +26,8 @@
     "staging": {
       "name": "api-web-desa-wisata-karang-pakuan-staging",
       "vars": {
-        "CORS_ORIGINS": ""
+        "CORS_ORIGINS": "",
+        "MEDIA_BASE_URL": ""
       },
       "d1_databases": [
         {
